@@ -1,0 +1,234 @@
+<doctype html>
+<html>
+	<head>
+		<title>MainPage</title>
+		<meta charset="utf-8">
+		<script type="text/javascript" src="pong.js"></script>
+		<style>
+			.border{
+				border: 3px solid black;
+			}
+			body{
+			 background-image: url("white-stairs.png");
+			}
+			table{
+				background-color: rgba(255,255,255,0.6);
+			}
+			td{
+				padding-left: 20px;
+			}
+		</style>
+	</head>
+	<body>
+	<div align="center">
+		<table border="0" width="80%">
+		<tr>
+			<td colspan="3" class="border">
+				<h2>
+					<a style="text-decoration: none; font-size: 30px;" href="Index.html">Javascript games</a>
+					<b>|</b>
+					<a href="https://github.com/Iamrailgun/" target="_blank">Github автора сайта</a>
+					<b>|</b>
+					<a href="OboutSite.html">О сайте</a>
+					<b>|</b>
+				</h2>
+			</td>
+		</tr>
+		<tr>
+			<td height="150" class="border" colspan="3">
+				<h3>Популярные игры</h3>
+				<div align="center">
+					<a href="snake.html"><img src="Snake.png" alt="" height="100%" hspace="5"></a>
+					<a href="pong.html"><img src="pong.png" alt="" height="100%" hspace="5"></a>
+					<a href="snake.html"><img src="Snake.png" alt="" height="100%" hspace="5"></a>
+					<a href="pong.html"><img src="pong.png" alt="" height="100%" hspace="5"></a>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td width="15%" height="550" class="border" valign="top">
+				<h1>Игры</h1>
+				<div style="font-size: 20px;">
+					<a href="Snake.html">Snake</a><br>
+					<a href="pong.html">Pong</a>
+				</div>
+			</td>
+			<td valign="top">
+				<h1>Pong</h1>
+				<div align="center">
+					<canvas id="canvas" width="480" height="320" style="border: 1px solid black"></canvas>
+				</div>
+			</td>
+			<td width="15%" class="border"></td>
+		</tr>
+		</table>
+	</div>
+	</body>
+	<script>
+		var canvas = document.getElementById("canvas");
+		var ctx = canvas.getContext("2d");
+		var ballRadius = 10;
+		var x = canvas.width/2;
+		var y = canvas.height-30;
+		var dx = 2;
+		var dy = -2;
+		var paddleHeight = 10;
+		var paddleWidth = 75;
+		var paddleX = (canvas.width-paddleWidth)/2;
+		var rightPressed = false;
+		var leftPressed = false;
+		var brickRowCount = 5;
+		var brickColumnCount = 3;
+		var brickWidth = 75;
+		var brickHeight = 20;
+		var brickPadding = 10;
+		var brickOffsetTop = 30;
+		var brickOffsetLeft = 30;
+		var score = 0;
+		var lives = 3;
+
+		var bricks = [];
+		for(c=0; c<brickColumnCount; c++) {
+		    bricks[c] = [];
+		    for(r=0; r<brickRowCount; r++) {
+		        bricks[c][r] = { x: 0, y: 0, status: 1 };
+		    }
+		}
+
+		document.addEventListener("keydown", keyDownHandler, false);
+		document.addEventListener("keyup", keyUpHandler, false);
+		// document.addEventListener("mousemove", mouseMoveHandler, false);
+
+		function keyDownHandler(e) {
+		    if(e.keyCode == 39) {
+		        rightPressed = true;
+		    }
+		    else if(e.keyCode == 37) {
+		        leftPressed = true;
+		    }
+		}
+		function keyUpHandler(e) {
+		    if(e.keyCode == 39) {
+		        rightPressed = false;
+		    }
+		    else if(e.keyCode == 37) {
+		        leftPressed = false;
+		    }
+		}
+		function mouseMoveHandler(e) {
+		    var relativeX = e.clientX - canvas.offsetLeft;
+		    if(relativeX > 0 && relativeX < canvas.width) {
+		        paddleX = relativeX - paddleWidth/2;
+		    }
+		}
+		function collisionDetection() {
+		    for(c=0; c<brickColumnCount; c++) {
+		        for(r=0; r<brickRowCount; r++) {
+		            var b = bricks[c][r];
+		            if(b.status == 1) {
+		                if(x > b.x && x < b.x+brickWidth && y > b.y && y < b.y+brickHeight) {
+		                    dy = -dy;
+		                    b.status = 0;
+		                    score++;
+		                    if(score == brickRowCount*brickColumnCount) {
+		                        alert("YOU WIN, CONGRATS!");
+		                        document.location.reload();
+		                    }
+		                }
+		            }
+		        }
+		    }
+		}
+
+		function drawBall() {
+		    ctx.beginPath();
+		    ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+		    ctx.fillStyle = "#0095DD";
+		    ctx.fill();
+		    ctx.closePath();
+		}
+		function drawPaddle() {
+		    ctx.beginPath();
+		    ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
+		    ctx.fillStyle = "#0095DD";
+		    ctx.fill();
+		    ctx.closePath();
+		}
+		function drawBricks() {
+		    for(c=0; c<brickColumnCount; c++) {
+		        for(r=0; r<brickRowCount; r++) {
+		            if(bricks[c][r].status == 1) {
+		                var brickX = (r*(brickWidth+brickPadding))+brickOffsetLeft;
+		                var brickY = (c*(brickHeight+brickPadding))+brickOffsetTop;
+		                bricks[c][r].x = brickX;
+		                bricks[c][r].y = brickY;
+		                ctx.beginPath();
+		                ctx.rect(brickX, brickY, brickWidth, brickHeight);
+		                ctx.fillStyle = "#0095DD";
+		                ctx.fill();
+		                ctx.closePath();
+		            }
+		        }
+		    }
+		}
+		function drawScore() {
+		    ctx.font = "16px Arial";
+		    ctx.fillStyle = "#0095DD";
+		    ctx.fillText("Score: "+score, 8, 20);
+		}
+		function drawLives() {
+		    ctx.font = "16px Arial";
+		    ctx.fillStyle = "#0095DD";
+		    ctx.fillText("Lives: "+lives, canvas.width-65, 20);
+		}
+
+		function draw() {
+		    ctx.clearRect(0, 0, canvas.width, canvas.height);
+		    drawBricks();
+		    drawBall();
+		    drawPaddle();
+		    drawScore();
+		    drawLives();
+		    collisionDetection();
+
+		    if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {
+		        dx = -dx;
+		    }
+		    if(y + dy < ballRadius) {
+		        dy = -dy;
+		    }
+		    else if(y + dy > canvas.height-ballRadius) {
+		        if(x > paddleX && x < paddleX + paddleWidth) {
+		            dy = -dy;
+		        }
+		        else {
+		            lives--;
+		            if(!lives) {
+		                alert("GAME OVER");
+		                document.location.reload();
+		            }
+		            else {
+		                x = canvas.width/2;
+		                y = canvas.height-30;
+		                dx = 3;
+		                dy = -3;
+		                paddleX = (canvas.width-paddleWidth)/2;
+		            }
+		        }
+		    }
+
+		    if(rightPressed && paddleX < canvas.width-paddleWidth) {
+		        paddleX += 7;
+		    }
+		    else if(leftPressed && paddleX > 0) {
+		        paddleX -= 7;
+		    }
+
+		    x += dx;
+		    y += dy;
+		    requestAnimationFrame(draw);
+		}
+
+		draw();
+	</script>
+</html>
